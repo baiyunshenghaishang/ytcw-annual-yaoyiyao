@@ -16,6 +16,7 @@
                 background: #292d2e;
             }
             .hand {
+                display: none;
                 width: 190px;
                 height: 194px;
                 background: url('./images/hand.png') no-repeat;
@@ -23,97 +24,99 @@
                 top: 50px;
                 left: 50%;
                 margin-left: -95px;
-                -webkit-animation: handMove infinite 2s;
-            }
-            .result {
-                background: #393b3c;
-                border: #2c2c2c 1px solid;
-                box-shadow: inset #4d4f50 0 0 0 1px;
-                border-radius: 10px;
-                color: #fff;
-                padding: 10px;
-                width: 250px;
-                position: absolute;
-                top: 300px;
-                left: 50%;
-                margin-left: -136px;
-                opacity: 0;
-                -webkit-transition: all 1s;
-                transition: all 1s;
-            }
-            .result .pic {
-                width: 50px;
-                height: 50px;
-                float: left;
-                background: #fff;
-            }
-            .result .pic img {
-                width: 48px;
-                height: 48px;
-                padding: 1px;
-            }
-            .result .con {
-                overflow: hidden;
-                zoom: 1;
-                padding-left: 10px;
-                line-height: 24px;
-            }
-            .result-show {
-                opacity: 1;
-                margin-top: 50px;
-            }
-            .loading {
-                position: absolute;
-                top: 240px;
-                left: 50%;
-                margin-left: -50px;
-                width: 100px;
-                height: 100px;
-                background: url('./images/spinner.png') no-repeat;
-                background-size: 100px 100px;
-                opacity: 0;
-                -webkit-animation: loading infinite linear 0.5s;
-            }
-            .loading-show {
-                opacity: 1;
+                animation: handMove infinite 2s;
             }
 
-            @-webkit-keyframes handMove {
+            @keyframes handMove {
                 0% {
-                    -webkit-transform: rotate(0);
                     transform: rotate(0);
                 }
                 50% {
-                    -webkit-transform: rotate(15deg);
                     transform: rotate(15deg);
                 }
                 100% {
-                    -webkit-transform: rotate(0);
                     transform: rotate(0);
                 }
             }
-            @-webkit-keyframes loading {
-                0% {
-                    -webkit-transform: rotate(0);
-                    transform: rotate(0);
-                }
-                100% {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
+            .input-box {
+                padding-top: 30%;
+                display: flex;
+                justify-content: center;
+            }
+            .input-box .input {
+                width: 75%;
+                -webkit-box-sizing: border-box;
+                box-sizing: border-box;
+                margin: 0;
+                font-variant: tabular-nums;
+                list-style: none;
+                -webkit-font-feature-settings: 'tnum';
+                font-feature-settings: 'tnum';
+                position: relative;
+                display: inline-block;
+                min-width: 0;
+                padding: 4px 11px;
+                color: rgba(0, 0, 0, 0.85);
+                font-size: 14px;
+                line-height: 1.5715;
+                background-color: #fff;
+                background-image: none;
+                border: 1px solid #d9d9d9;
+                border-radius: 2px;
+                -webkit-transition: all 0.3s;
+                transition: all 0.3s;
             }
         </style>
     </head>
     <body>
-        <div>苹果手机需要点击摇一摇图片才能参与</div>
-        <div id="hand" class="hand"></div>
-        <div id="loading" class="loading"></div>
-        <div id="result" class="result">
-            <!-- <div class="pic"><img src="http://www.coolfishstudio.com/images/yves.png" /></div> -->
-            <!-- <div class="con">摇晃结果<br />恭喜你摇到了本大帅哥。</div> -->
+        <div class="input-box">
+            <input class="input" placeholder="少侠，请输入您的大名" />
         </div>
+        <div id="hand" class="hand"></div>
         <script src="./vconsole.min.js"></script>
         <script type="text/javascript">
+            let count = 0
+            window.onload = function () {
+                new VConsole()
+                initIOSPermission()
+            }
+            function initShakeObserver() {
+                var lastTime = 0
+                var x = (y = z = lastX = lastY = lastZ = 0)
+                var shakeSpeed = 800
+
+                if (window.DeviceMotionEvent) {
+                    console.log('on load')
+                    window.addEventListener('devicemotion', shake, false)
+                } else {
+                    alert('本设备不支持摇一摇功能')
+                }
+
+                function shake(eventDate) {
+                    //获取设备加速度信息
+                    var acceleration = eventDate.accelerationIncludingGravity
+                    var nowTime = new Date().getTime()
+                    //如果这次摇的时间距离上次摇的时间有一定间隔 才执行
+                    if (nowTime - lastTime > 100) {
+                        var diffTime = nowTime - lastTime
+                        lastTime = nowTime
+                        x = acceleration.x
+                        y = acceleration.y
+                        z = acceleration.z
+                        var speed = (Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime) * 10000
+                        if (speed > shakeSpeed) {
+                            count++
+                            showResult()
+                        }
+                        lastX = x
+                        lastY = y
+                        lastZ = z
+                    }
+                }
+
+                function showResult() {}
+            }
+
             function iosGrantedTips() {
                 var ua = navigator.userAgent.toLowerCase() //判断移动端设备，区分android，iphone，ipad和其它
                 if (ua.indexOf('like mac os x') > 0) {
@@ -171,52 +174,10 @@
                 }
             }
 
-            function initPermission() {
+            function initIOSPermission() {
                 document.getElementById('hand').addEventListener('click', () => {
                     iosGrantedTips()
                 })
-            }
-            let count = 0
-            window.onload = function () {
-                new VConsole()
-                initPermission()
-                var lastTime = 0
-                var x = (y = z = lastX = lastY = lastZ = 0)
-                var shakeSpeed = 800
-
-                if (window.DeviceMotionEvent) {
-                    console.log('on load')
-                    window.addEventListener('devicemotion', shake, false)
-                } else {
-                    alert('本设备不支持摇一摇功能')
-                }
-
-                function shake(eventDate) {
-                    //获取设备加速度信息
-                    var acceleration = eventDate.accelerationIncludingGravity
-                    var nowTime = new Date().getTime()
-                    //如果这次摇的时间距离上次摇的时间有一定间隔 才执行
-                    if (nowTime - lastTime > 100) {
-                        var diffTime = nowTime - lastTime
-                        lastTime = nowTime
-                        x = acceleration.x
-                        y = acceleration.y
-                        z = acceleration.z
-                        var speed = (Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime) * 10000
-                        if (speed > shakeSpeed) {
-                            count++
-                            console.log(count)
-                            showResult()
-                        }
-                        lastX = x
-                        lastY = y
-                        lastZ = z
-                    }
-                }
-
-                function showResult() {
-                    
-                }
             }
         </script>
     </body>
